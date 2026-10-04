@@ -1,0 +1,11 @@
+# Нормализация переводов строк: в репозитории всегда LF
+* text=auto eol=lf
+
+# Бинарные файлы — не трогать
+*.png binary
+*.jpg binary
+*.pdf binary
+*.a binary
+*.so binary
+*.exe binary
+*.o binary
