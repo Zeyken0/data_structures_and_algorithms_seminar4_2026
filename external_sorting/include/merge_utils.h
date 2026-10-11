@@ -1,12 +1,5 @@
 #pragma once
 
-// Общие средства для алгоритмов внешней сортировки.
-//
-// Данные во всех файлах хранятся в двоичном виде: последовательность
-// объектов типа T, записанных "как есть" (sizeof(T) байт на элемент).
-// Доступ к записям — только последовательный, как и требует модель
-// внешней сортировки: файл читается поэлементно с помощью потока.
-
 #include <cstddef>
 #include <filesystem>
 #include <fstream>
@@ -16,10 +9,6 @@
 
 namespace merge_detail {
 
-// Поток элементов из последовательного файла.
-// Хранит один "прочитанный" элемент, к которому есть доступ, пока не
-// наступит конец файла, — это позволяет "смотреть" первую запись серии,
-// не загружая файл целиком в ОП.
 template <typename T>
 class ElementReader {
 public:
@@ -31,7 +20,6 @@ public:
     bool valid() const { return valid_; }
     const T& current() const { return current_; }
 
-    // Переход к следующей записи.
     void fetch() {
         valid_ = static_cast<bool>(stream_.read(reinterpret_cast<char*>(&current_), sizeof(T)));
     }
@@ -54,8 +42,6 @@ void write_vector(std::ofstream& out, const std::vector<T>& values) {
     }
 }
 
-// Считывает из файла серию фиксированной длины.
-// Если до конца файла осталось меньше элементов, возвращается "хвост".
 template <typename T>
 std::vector<T> read_fixed_run(ElementReader<T>& source, std::size_t run_size) {
     std::vector<T> run;
@@ -67,7 +53,6 @@ std::vector<T> read_fixed_run(ElementReader<T>& source, std::size_t run_size) {
     return run;
 }
 
-// Считывает естественную серию — максимальную неубывающую последовательность.
 template <typename T>
 std::vector<T> read_natural_run(ElementReader<T>& source) {
     std::vector<T> run;
@@ -83,9 +68,6 @@ std::vector<T> read_natural_run(ElementReader<T>& source) {
     return run;
 }
 
-// Сливает две упорядоченные серии в открытый выходной файл.
-// При равенстве ключей раньше записывается элемент левой серии,
-// поэтому слияние устойчиво.
 template <typename T>
 void write_merged(std::ofstream& out, std::vector<T> left, std::vector<T> right) {
     std::size_t i = 0;
@@ -112,21 +94,17 @@ inline void remove_if_exists(const std::filesystem::path& path) {
     std::filesystem::remove(path, ec);
 }
 
-// Возвращает результат сортирования в исходный файл: содержимое source
-// становится содержимым path, после чего source удаляется.
 inline void replace_file(const std::filesystem::path& source, const std::filesystem::path& path) {
     std::error_code ec;
     std::filesystem::remove(path, ec);
     std::filesystem::rename(source, path, ec);
     if (ec) {
-        // Файлы на разных файловых системах — перенос невозможен, копируем.
         std::filesystem::copy_file(source, path,
                                    std::filesystem::copy_options::overwrite_existing, ec);
         std::filesystem::remove(source, ec);
     }
 }
 
-// Вспомогательная функция: непустой ли файл.
 inline bool file_is_non_empty(const std::filesystem::path& path) {
     std::error_code ec;
     const auto size = std::filesystem::file_size(path, ec);

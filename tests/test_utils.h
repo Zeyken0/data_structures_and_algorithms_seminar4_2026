@@ -52,8 +52,6 @@ std::vector<T> read_vector_from_file(const std::filesystem::path& path) {
     return values;
 }
 
-// Детерминированный псевдослучайный набор значений — удобен для
-// воспроизводимых «стрессовых» тестов.
 inline std::vector<int> make_random_ints(std::size_t count, std::uint32_t seed, int range = 1000) {
     std::mt19937 gen(seed);
     std::uniform_int_distribution<int> dist(-range, range);
@@ -80,8 +78,6 @@ std::vector<T> sorted_copy(std::vector<T> values) {
     return values;
 }
 
-// «Чередующиеся» серии: каждая следующая запись меньше предыдущей,
-// т.е. файл распадается на максимально возможное число серий длиной 1.
 inline std::vector<int> make_alternating_values(std::size_t count) {
     std::vector<int> values;
     values.reserve(count);

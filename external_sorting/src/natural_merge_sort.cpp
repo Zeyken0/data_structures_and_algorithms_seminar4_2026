@@ -7,11 +7,6 @@
 
 namespace {
 
-// Фаза распределения: естественные серии файла f попеременно распределяются
-// по файлам g и t (первая серия — в g, вторая — в t и т.д.). Длина каждой
-// серии определяется данными, а не задаётся заранее.
-// Возвращает количество серий; если серия одна, файл f уже отсортирован
-// и ни в g, ни в t ничего не записывается.
 template <typename T>
 std::size_t distribution_phase(const std::filesystem::path& f,
                                const std::filesystem::path& g,
@@ -29,7 +24,6 @@ std::size_t distribution_phase(const std::filesystem::path& f,
         }
         ++run_count;
         if (!source.valid() && run_count == 1) {
-            // Весь файл оказался одной серией — распределять нечего.
             break;
         }
         merge_detail::write_vector(to_g ? out_g : out_t, run);
@@ -38,9 +32,6 @@ std::size_t distribution_phase(const std::filesystem::path& f,
     return run_count;
 }
 
-// Фаза слияния: естественные серии файлов g и t сливается попарно в файл f.
-// Если серий в одном файле оказалось больше, "лишние" дозаписываются в конец —
-// все элементы следующей серии не меньше всех элементов предыдущей.
 template <typename T>
 void merge_phase(const std::filesystem::path& g,
                  const std::filesystem::path& t,
@@ -61,15 +52,6 @@ void merge_phase(const std::filesystem::path& g,
 
 }
 
-// Алгоритм сортировки естественным слиянием.
-//
-// Используется три файла: f (исходный) и два вспомогательных — g и t.
-// В отличие от прямого слияния, длина сливаемых серий не фиксируется:
-//series берутся ровно такими, какими их задают данные.
-//
-// Фаза распределения:series файла f попеременно распределяются по g и t.
-// Фаза слияния:series файлов g и t сливается попарно обратно в f.
-// Проходы повторяются, пока в файле f не останется одна серия.
 template <typename T>
 void natural_merge_sort(const std::filesystem::path& input_file,
                         const std::filesystem::path& temp_dir) {
@@ -84,7 +66,6 @@ void natural_merge_sort(const std::filesystem::path& input_file,
     while (true) {
         const std::size_t run_count = distribution_phase<T>(input_file, g, t);
         if (run_count <= 1) {
-            // В файле f одна серия (или он пуст) — сортировка закончена.
             break;
         }
         merge_phase<T>(g, t, input_file);

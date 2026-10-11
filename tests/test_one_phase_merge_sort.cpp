@@ -19,7 +19,6 @@ void check_sorted(const std::string& case_name,
     one_phase_merge_sort<T>(input_file, temp_dir, run_size);
 
     REQUIRE(read_vector_from_file<T>(input_file) == expected);
-    // Вспомогательные файлы f1, f2, g1 и g2 должны быть удалены.
     REQUIRE(std::filesystem::is_empty(temp_dir));
 }
 
@@ -64,10 +63,6 @@ TEST_CASE("OnePhaseMergeSort: размер серии 1", "[one_phase_merge_sort
 }
 
 TEST_CASE("OnePhaseMergeSort: пример из лекции", "[one_phase_merge_sort]") {
-    // Исходный файл f: 3 14 15 9 2 5 17 -4 0
-    // Начальное разделение: f1: 3 | 15 | 2 | 17 | 0, f2: 14 | 9 | 5 | -4
-    // 1-й проход: g1: 3 14 | 2 5 | 0, g2: 9 15 | -4 17
-    // Далее серии удваиваются до единственной серии.
     check_sorted<int>("one_phase_lecture_example",
                       {3, 14, 15, 9, 2, 5, 17, -4, 0},
                       {-4, 0, 2, 3, 5, 9, 14, 15, 17},
@@ -90,7 +85,6 @@ TEST_CASE("OnePhaseMergeSort: размер серии не делится нац
 }
 
 TEST_CASE("OnePhaseMergeSort: серий больше, чем степени двойки", "[one_phase_merge_sort]") {
-    // 17 записей при размере серии 1: серий 17 -> 9 -> 5 -> 3 -> 2 -> 1.
     std::vector<int> input;
     for (int i = 17; i >= 1; --i) {
         input.push_back(i);

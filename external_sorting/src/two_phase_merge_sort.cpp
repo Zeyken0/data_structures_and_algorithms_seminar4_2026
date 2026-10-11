@@ -8,13 +8,6 @@
 
 namespace {
 
-// Фаза разделения: файл in распределяется по файлам g и t сериями длиной
-// run_size попеременно (первая серия — в g, вторая — в t, третья — в g и т.д.).
-// Возвращает количество серий (в g попадает на одну серию больше, чем в t).
-//
-// sort_runs == true — каждая считанная серия предварительно сортируется в ОП
-// (так обрабатывается исходный файл). Иначе series в файле in уже упорядочены
-// и лежат подряд, поэтому достаточно их скопировать.
 template <typename T>
 std::size_t distribution_phase(const std::filesystem::path& in,
                                const std::filesystem::path& g,
@@ -42,9 +35,6 @@ std::size_t distribution_phase(const std::filesystem::path& in,
     return run_count;
 }
 
-// Фаза слияния: серии файлов g и t сливается попарно в файл f.
-// Если серий в одном файле оказалось больше, "лишние" просто дозаписываются
-// в конец — их элементы не меньше всех уже записанных.
 template <typename T>
 void merge_phase(const std::filesystem::path& g,
                  const std::filesystem::path& t,
@@ -66,19 +56,6 @@ void merge_phase(const std::filesystem::path& g,
 
 }
 
-// Алгоритм 2-х фазной сортировки прямым слиянием.
-//
-// Используется три файла: f (исходный) и два вспомогательных — g и t.
-//
-// Фаза разделения: исходный файл f читается сериями, каждая серия сортируется
-// в ОП и записывается в файлы g и t попеременно.
-// Фаза слияния: серии файлов g и t сливается попарно обратно в f — длина
-// серий удваивается.
-// Проходы повторяются, пока в файле f не останется одна серия.
-//
-// run_size = 1 — классическая схема из лекции (начальные серии длиной 1).
-// run_size > 1 — ускорение прямого слияния: блоки из run_size записей
-// сортируются в ОП и во внешнюю память попадают уже в виде серий длиной k.
 template <typename T>
 void two_phase_merge_sort(const std::filesystem::path& input_file,
                           const std::filesystem::path& temp_dir,
@@ -94,20 +71,15 @@ void two_phase_merge_sort(const std::filesystem::path& input_file,
     const std::filesystem::path g = temp_dir / "two_phase_g.bin";
     const std::filesystem::path t = temp_dir / "two_phase_t.bin";
 
-    // Начальное разделение исходного файла на серии с их сортировкой в ОП.
     std::size_t cur_size = run_size;
     std::size_t run_count = distribution_phase<T>(input_file, g, t, cur_size, true);
 
     if (run_count == 0) {
-        // Пустой исходный файл — сортировать нечего.
         merge_detail::remove_if_exists(g);
         merge_detail::remove_if_exists(t);
         return;
     }
 
-    // Проходы сортировки. После k-го слияния серии файла f имеют длину
-    // 2^k * run_size (кроме последней), поэтому длина читаемой серии
-    // на каждом проходе удваивается.
     bool result_in_input = false;
     while (true) {
         merge_phase<T>(g, t, input_file, cur_size);
@@ -115,7 +87,6 @@ void two_phase_merge_sort(const std::filesystem::path& input_file,
 
         run_count = (run_count + 1) / 2;
         if (run_count == 1) {
-            // В файле f осталась одна серия — сортировка закончена.
             break;
         }
 
@@ -125,8 +96,6 @@ void two_phase_merge_sort(const std::filesystem::path& input_file,
     }
 
     if (!result_in_input) {
-        // Сортировка завершилась ещё на фазе разделения: файл f содержит одну
-        // серию, которая лежит в файле g — возвращаем её в исходный файл.
         merge_detail::replace_file(g, input_file);
     }
 

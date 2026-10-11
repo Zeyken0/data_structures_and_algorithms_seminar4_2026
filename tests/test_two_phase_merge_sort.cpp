@@ -19,7 +19,6 @@ void check_sorted(const std::string& case_name,
     two_phase_merge_sort<T>(input_file, temp_dir, run_size);
 
     REQUIRE(read_vector_from_file<T>(input_file) == expected);
-    // Вспомогательные файлы f, g и t должны быть удалены.
     REQUIRE(std::filesystem::is_empty(temp_dir));
 }
 
@@ -64,10 +63,6 @@ TEST_CASE("TwoPhaseMergeSort: размер серии 1", "[two_phase_merge_sort
 }
 
 TEST_CASE("TwoPhaseMergeSort: пример из лекции", "[two_phase_merge_sort]") {
-    // Исходный файл f: 3 14 15 9 2 5 17 -4 0
-    // 1-й проход. Разделение: g: 3 15 2 17 0, t: 14 9 5 -4.
-    //             Слияние:    f: 3 14 | 9 15 | 2 5 | -4 17 | 0
-    // Далее длина серий удваивается до единственной серии.
     check_sorted<int>("two_phase_lecture_example",
                       {3, 14, 15, 9, 2, 5, 17, -4, 0},
                       {-4, 0, 2, 3, 5, 9, 14, 15, 17},
@@ -90,8 +85,6 @@ TEST_CASE("TwoPhaseMergeSort: размер серии не делится нац
 }
 
 TEST_CASE("TwoPhaseMergeSort: серий больше, чем степени двойки", "[two_phase_merge_sort]") {
-    // 17 записей при размере серии 1: серий 17 -> 9 -> 5 -> 3 -> 2 -> 1,
-    // т.е. на нескольких проходах попадаются «лишние» серии.
     std::vector<int> input;
     for (int i = 17; i >= 1; --i) {
         input.push_back(i);
