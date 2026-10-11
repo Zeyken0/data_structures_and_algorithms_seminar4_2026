@@ -1,7 +1,10 @@
 #pragma once
 
+#include <algorithm>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <random>
 #include <string>
 #include <vector>
 
@@ -45,6 +48,50 @@ std::vector<T> read_vector_from_file(const std::filesystem::path& path) {
     T value;
     while (in.read(reinterpret_cast<char*>(&value), sizeof(T))) {
         values.push_back(value);
+    }
+    return values;
+}
+
+// Детерминированный псевдослучайный набор значений — удобен для
+// воспроизводимых «стрессовых» тестов.
+inline std::vector<int> make_random_ints(std::size_t count, std::uint32_t seed, int range = 1000) {
+    std::mt19937 gen(seed);
+    std::uniform_int_distribution<int> dist(-range, range);
+    std::vector<int> values(count);
+    for (int& value : values) {
+        value = dist(gen);
+    }
+    return values;
+}
+
+inline std::vector<double> make_random_doubles(std::size_t count, std::uint32_t seed) {
+    std::mt19937 gen(seed);
+    std::uniform_real_distribution<double> dist(-1000.0, 1000.0);
+    std::vector<double> values(count);
+    for (double& value : values) {
+        value = dist(gen);
+    }
+    return values;
+}
+
+template <typename T>
+std::vector<T> sorted_copy(std::vector<T> values) {
+    std::sort(values.begin(), values.end());
+    return values;
+}
+
+// «Чередующиеся» серии: каждая следующая запись меньше предыдущей,
+// т.е. файл распадается на максимально возможное число серий длиной 1.
+inline std::vector<int> make_alternating_values(std::size_t count) {
+    std::vector<int> values;
+    values.reserve(count);
+    int low = 0;
+    int high = static_cast<int>(count);
+    while (values.size() < count) {
+        values.push_back(high--);
+        if (values.size() < count) {
+            values.push_back(low++);
+        }
     }
     return values;
 }

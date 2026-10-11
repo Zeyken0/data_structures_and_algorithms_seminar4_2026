@@ -19,17 +19,18 @@ void check_sorted(const std::string& case_name,
     one_phase_merge_sort<T>(input_file, temp_dir, run_size);
 
     REQUIRE(read_vector_from_file<T>(input_file) == expected);
+    // Вспомогательные файлы f1, f2, g1 и g2 должны быть удалены.
     REQUIRE(std::filesystem::is_empty(temp_dir));
 }
 
 }
 
 TEST_CASE("OnePhaseMergeSort: пустой файл", "[one_phase_merge_sort]") {
-    check_sorted<int>("one_phase_empty", {}, {}, 4);
+    check_sorted<int>("one_phase_empty", {}, {}, 1);
 }
 
 TEST_CASE("OnePhaseMergeSort: один элемент", "[one_phase_merge_sort]") {
-    check_sorted<int>("one_phase_single", {42}, {42}, 4);
+    check_sorted<int>("one_phase_single", {42}, {42}, 1);
 }
 
 TEST_CASE("OnePhaseMergeSort: уже отсортированный", "[one_phase_merge_sort]") {
@@ -62,14 +63,50 @@ TEST_CASE("OnePhaseMergeSort: размер серии 1", "[one_phase_merge_sort
                       1);
 }
 
-TEST_CASE("OnePhaseMergeSort: большой файл", "[one_phase_merge_sort]") {
-    std::vector<int> input;
-    std::vector<int> expected;
-    for (int i = 99; i >= 0; --i) {
-        input.push_back(i);
-        expected.push_back(99 - i);
+TEST_CASE("OnePhaseMergeSort: пример из лекции", "[one_phase_merge_sort]") {
+    // Исходный файл f: 3 14 15 9 2 5 17 -4 0
+    // Начальное разделение: f1: 3 | 15 | 2 | 17 | 0, f2: 14 | 9 | 5 | -4
+    // 1-й проход: g1: 3 14 | 2 5 | 0, g2: 9 15 | -4 17
+    // Далее серии удваиваются до единственной серии.
+    check_sorted<int>("one_phase_lecture_example",
+                      {3, 14, 15, 9, 2, 5, 17, -4, 0},
+                      {-4, 0, 2, 3, 5, 9, 14, 15, 17},
+                      1);
+}
+
+TEST_CASE("OnePhaseMergeSort: размер серии не делится нацело (хвост)", "[one_phase_merge_sort]") {
+    SECTION("хвост короче серии") {
+        check_sorted<int>("one_phase_tail_short",
+                          {9, 8, 7, 6, 5, 4, 3, 2, 1},
+                          {1, 2, 3, 4, 5, 6, 7, 8, 9},
+                          4);
     }
-    check_sorted<int>("one_phase_large", input, expected, 1024);
+    SECTION("хвост из одного элемента") {
+        check_sorted<int>("one_phase_tail_single",
+                          {5, 4, 3, 2, 1, 0},
+                          {0, 1, 2, 3, 4, 5},
+                          5);
+    }
+}
+
+TEST_CASE("OnePhaseMergeSort: серий больше, чем степени двойки", "[one_phase_merge_sort]") {
+    // 17 записей при размере серии 1: серий 17 -> 9 -> 5 -> 3 -> 2 -> 1.
+    std::vector<int> input;
+    for (int i = 17; i >= 1; --i) {
+        input.push_back(i);
+    }
+    check_sorted<int>("one_phase_odd_runs", input, sorted_copy(input), 1);
+}
+
+TEST_CASE("OnePhaseMergeSort: случайный массив", "[one_phase_merge_sort]") {
+    SECTION("10000 элементов, серии длиной 1") {
+        const std::vector<int> input = make_random_ints(10000, 42);
+        check_sorted<int>("one_phase_random_unit", input, sorted_copy(input), 1);
+    }
+    SECTION("9999 элементов, размер серии 64") {
+        const std::vector<int> input = make_random_ints(9999, 777);
+        check_sorted<int>("one_phase_random_blocks", input, sorted_copy(input), 64);
+    }
 }
 
 TEST_CASE("OnePhaseMergeSort: два элемента, оба порядка", "[one_phase_merge_sort]") {
@@ -94,7 +131,18 @@ TEST_CASE("OnePhaseMergeSort: double", "[one_phase_merge_sort][double]") {
                              {-3.75, -1.5, 0.0, 1.5, 2.25},
                              2);
     }
+    SECTION("случайные дробные") {
+        const std::vector<double> input = make_random_doubles(500, 13);
+        check_sorted<double>("one_phase_double_random", input, sorted_copy(input), 1);
+    }
     SECTION("пустой файл") {
         check_sorted<double>("one_phase_double_empty", {}, {}, 2);
     }
+}
+
+TEST_CASE("OnePhaseMergeSort: float", "[one_phase_merge_sort][float]") {
+    check_sorted<float>("one_phase_float",
+                        {2.5F, -1.0F, 0.0F, 7.25F, -1.0F},
+                        {-1.0F, -1.0F, 0.0F, 2.5F, 7.25F},
+                        2);
 }

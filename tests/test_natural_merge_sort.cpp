@@ -20,6 +20,7 @@ void check_sorted(const std::string& case_name,
     natural_merge_sort<T>(input_file, temp_dir);
 
     REQUIRE(read_vector_from_file<T>(input_file) == expected);
+    // Вспомогательные файлы g и t должны быть удалены.
     REQUIRE(std::filesystem::is_empty(temp_dir));
 }
 
@@ -34,6 +35,7 @@ TEST_CASE("NaturalMergeSort: один элемент", "[natural_merge_sort]") {
 }
 
 TEST_CASE("NaturalMergeSort: уже отсортированный", "[natural_merge_sort]") {
+    // Файл состоит из одной естественной серии — фаза слияния не нужна.
     check_sorted<int>("natural_sorted", {1, 2, 3, 4, 5}, {1, 2, 3, 4, 5});
 }
 
@@ -48,6 +50,7 @@ TEST_CASE("NaturalMergeSort: произвольный порядок", "[natural
 }
 
 TEST_CASE("NaturalMergeSort: много дубликатов", "[natural_merge_sort]") {
+    // Равные подряд идущие элементы образуют одну серию.
     check_sorted<int>("natural_duplicates", {5, 1, 5, 1, 5, 1}, {1, 1, 1, 5, 5, 5});
 }
 
@@ -71,6 +74,42 @@ TEST_CASE("NaturalMergeSort: серия больше прочих", "[natural_me
                       {1, 2, 3, 4, 5, 6, 7, 8, 9});
 }
 
+TEST_CASE("NaturalMergeSort: пример из лекции", "[natural_merge_sort]") {
+    // Исходный файл f: 3 14 15 9 2 5 17 -4 0
+    // 1-й проход. Распределение: g: 3 14 15 | 2 5 17, t: 9 | -4 0
+    //               Слияние:     f: 3 9 14 15 | -4 0 2 5 17
+    // 2-й проход: g: 3 9 14 15, t: -4 0 2 5 17 -> одна серия.
+    check_sorted<int>("natural_lecture_example",
+                      {3, 14, 15, 9, 2, 5, 17, -4, 0},
+                      {-4, 0, 2, 3, 5, 9, 14, 15, 17});
+}
+
+TEST_CASE("NaturalMergeSort: серия длиной 1 на каждой позиции", "[natural_merge_sort]") {
+    // Файл распадается на максимально возможное число серий: 20 1 | 40 2 | ...
+    const std::vector<int> input = make_alternating_values(20);
+    check_sorted<int>("natural_alternating", input, sorted_copy(input));
+}
+
+TEST_CASE("NaturalMergeSort: серия занимает почти весь файл", "[natural_merge_sort]") {
+    std::vector<int> input;
+    for (int i = 1; i <= 50; ++i) {
+        input.push_back(i);
+    }
+    input.push_back(0);
+    check_sorted<int>("natural_almost_one_run", input, sorted_copy(input));
+}
+
+TEST_CASE("NaturalMergeSort: случайный массив", "[natural_merge_sort]") {
+    SECTION("10000 элементов") {
+        const std::vector<int> input = make_random_ints(10000, 42);
+        check_sorted<int>("natural_random", input, sorted_copy(input));
+    }
+    SECTION("9999 элементов") {
+        const std::vector<int> input = make_random_ints(9999, 777);
+        check_sorted<int>("natural_random_9999", input, sorted_copy(input));
+    }
+}
+
 TEST_CASE("NaturalMergeSort: два элемента, оба порядка", "[natural_merge_sort]") {
     SECTION("по возрастанию") {
         check_sorted<int>("natural_two_asc", {1, 2}, {1, 2});
@@ -91,7 +130,17 @@ TEST_CASE("NaturalMergeSort: double", "[natural_merge_sort][double]") {
                              {-1.5, 2.25, -3.75, 0.0, 1.5},
                              {-3.75, -1.5, 0.0, 1.5, 2.25});
     }
+    SECTION("случайные дробные") {
+        const std::vector<double> input = make_random_doubles(500, 13);
+        check_sorted<double>("natural_double_random", input, sorted_copy(input));
+    }
     SECTION("пустой файл") {
         check_sorted<double>("natural_double_empty", {}, {});
     }
+}
+
+TEST_CASE("NaturalMergeSort: float", "[natural_merge_sort][float]") {
+    check_sorted<float>("natural_float",
+                        {2.5F, -1.0F, 0.0F, 7.25F, -1.0F},
+                        {-1.0F, -1.0F, 0.0F, 2.5F, 7.25F});
 }
