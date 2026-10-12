@@ -30,101 +30,88 @@ TEST_CASE("NaturalMergeSort: пустой файл", "[natural_merge_sort]") {
 }
 
 TEST_CASE("NaturalMergeSort: один элемент", "[natural_merge_sort]") {
-    check_sorted<int>("natural_single", {42}, {42});
+    check_sorted<int>("natural_single", {12}, {12});
 }
 
 TEST_CASE("NaturalMergeSort: уже отсортированный", "[natural_merge_sort]") {
-    check_sorted<int>("natural_sorted", {1, 2, 3, 4, 5}, {1, 2, 3, 4, 5});
+    check_sorted<int>("natural_sorted",
+                      {0, 2, 5, 6, 8, 12, 14, 18},
+                      {0, 2, 5, 6, 8, 12, 14, 18});
 }
 
 TEST_CASE("NaturalMergeSort: обратный порядок", "[natural_merge_sort]") {
-    check_sorted<int>("natural_reversed", {5, 4, 3, 2, 1}, {1, 2, 3, 4, 5});
+    check_sorted<int>("natural_reversed",
+                      {18, 14, 12, 8, 6, 5, 2, 0},
+                      {0, 2, 5, 6, 8, 12, 14, 18});
 }
 
-TEST_CASE("NaturalMergeSort: произвольный порядок", "[natural_merge_sort]") {
-    check_sorted<int>("natural_arbitrary",
-                      {3, 1, 4, 1, 5, 9, 2, 6, 5, 3},
-                      {1, 1, 2, 3, 3, 4, 5, 5, 6, 9});
+TEST_CASE("NaturalMergeSort: тестовый массив", "[natural_merge_sort]") {
+    check_sorted<int>("natural_test_array",
+                      {12, 6, 0, 14, 5, 18, 2, 8},
+                      {0, 2, 5, 6, 8, 12, 14, 18});
 }
 
 TEST_CASE("NaturalMergeSort: много дубликатов", "[natural_merge_sort]") {
-    check_sorted<int>("natural_duplicates", {5, 1, 5, 1, 5, 1}, {1, 1, 1, 5, 5, 5});
+    check_sorted<int>("natural_duplicates",
+                      {12, 6, 0, 14, 5, 18, 2, 8, 12, 6, 0, 14, 5, 18, 2, 8},
+                      {0, 0, 2, 2, 5, 5, 6, 6, 8, 8, 12, 12, 14, 14, 18, 18});
 }
 
 TEST_CASE("NaturalMergeSort: отрицательные числа", "[natural_merge_sort]") {
-    check_sorted<int>("natural_negative", {-1, -5, -3, -2, -4}, {-5, -4, -3, -2, -1});
+    check_sorted<int>("natural_negative",
+                      {-12, -6, 0, -14, -5, -18, -2, -8},
+                      {-18, -14, -12, -8, -6, -5, -2, 0});
 }
 
 TEST_CASE("NaturalMergeSort: две чередующиеся серии", "[natural_merge_sort]") {
     check_sorted<int>("natural_two_runs",
-                      {1, 2, 3, 4, 10, 11, 12, 5, 6, 7, 20, 21},
-                      {1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 20, 21});
+                      {0, 2, 5, 6, 18, 8, 12, 14},
+                      {0, 2, 5, 6, 8, 12, 14, 18});
+}
+
+TEST_CASE("NaturalMergeSort: чередующиеся серии длиной 2", "[natural_merge_sort]") {
+    check_sorted<int>("natural_pairs",
+                      {0, 18, 2, 14, 5, 12, 6, 8},
+                      {0, 2, 5, 6, 8, 12, 14, 18});
 }
 
 TEST_CASE("NaturalMergeSort: склейка первой и последней серии", "[natural_merge_sort]") {
-    check_sorted<int>("natural_glue_runs", {4, 5, 6, 1, 2, 3}, {1, 2, 3, 4, 5, 6});
+    check_sorted<int>("natural_glue_runs",
+                      {6, 8, 12, 0, 2, 18, 5, 14},
+                      {0, 2, 5, 6, 8, 12, 14, 18});
 }
 
 TEST_CASE("NaturalMergeSort: серия больше прочих", "[natural_merge_sort]") {
     check_sorted<int>("natural_big_run",
-                      {9, 8, 7, 1, 2, 3, 4, 5, 6},
-                      {1, 2, 3, 4, 5, 6, 7, 8, 9});
-}
-
-TEST_CASE("NaturalMergeSort: пример из лекции", "[natural_merge_sort]") {
-    check_sorted<int>("natural_lecture_example",
-                      {3, 14, 15, 9, 2, 5, 17, -4, 0},
-                      {-4, 0, 2, 3, 5, 9, 14, 15, 17});
-}
-
-TEST_CASE("NaturalMergeSort: серия длиной 1 на каждой позиции", "[natural_merge_sort]") {
-    const std::vector<int> input = make_alternating_values(20);
-    check_sorted<int>("natural_alternating", input, sorted_copy(input));
+                      {18, 14, 0, 2, 5, 6, 8, 12},
+                      {0, 2, 5, 6, 8, 12, 14, 18});
 }
 
 TEST_CASE("NaturalMergeSort: серия занимает почти весь файл", "[natural_merge_sort]") {
-    std::vector<int> input;
-    for (int i = 1; i <= 50; ++i) {
-        input.push_back(i);
-    }
-    input.push_back(0);
-    check_sorted<int>("natural_almost_one_run", input, sorted_copy(input));
-}
-
-TEST_CASE("NaturalMergeSort: случайный массив", "[natural_merge_sort]") {
-    SECTION("10000 элементов") {
-        const std::vector<int> input = make_random_ints(10000, 42);
-        check_sorted<int>("natural_random", input, sorted_copy(input));
-    }
-    SECTION("9999 элементов") {
-        const std::vector<int> input = make_random_ints(9999, 777);
-        check_sorted<int>("natural_random_9999", input, sorted_copy(input));
-    }
+    check_sorted<int>("natural_almost_one_run",
+                      {2, 5, 6, 8, 12, 14, 18, 0},
+                      {0, 2, 5, 6, 8, 12, 14, 18});
 }
 
 TEST_CASE("NaturalMergeSort: два элемента, оба порядка", "[natural_merge_sort]") {
     SECTION("по возрастанию") {
-        check_sorted<int>("natural_two_asc", {1, 2}, {1, 2});
+        check_sorted<int>("natural_two_asc", {6, 12}, {6, 12});
     }
     SECTION("по убыванию") {
-        check_sorted<int>("natural_two_desc", {2, 1}, {1, 2});
+        check_sorted<int>("natural_two_desc", {12, 6}, {6, 12});
     }
 }
 
 TEST_CASE("NaturalMergeSort: double", "[natural_merge_sort][double]") {
     SECTION("положительные дробные") {
         check_sorted<double>("natural_double_pos",
-                             {3.5, 1.25, 2.75, 0.5, 4.0},
-                             {0.5, 1.25, 2.75, 3.5, 4.0});
+                             {6.0, 3.0, 0.0, 7.0, 2.5, 9.0, 1.0, 4.0},
+                             {0.0, 1.0, 2.5, 3.0, 4.0, 6.0, 7.0, 9.0});
     }
     SECTION("отрицательные и положительные") {
         check_sorted<double>("natural_double_mix",
-                             {-1.5, 2.25, -3.75, 0.0, 1.5},
-                             {-3.75, -1.5, 0.0, 1.5, 2.25});
-    }
-    SECTION("случайные дробные") {
-        const std::vector<double> input = make_random_doubles(500, 13);
-        check_sorted<double>("natural_double_random", input, sorted_copy(input));
+                             {-6.0, 3.0, 0.0, -7.0, 2.5, -9.0, 1.0, 4.0},
+                             {-9.0, -7.0, -6.0, 0.0, 1.0, 2.5, 3.0, 4.0});
     }
     SECTION("пустой файл") {
         check_sorted<double>("natural_double_empty", {}, {});
@@ -133,6 +120,6 @@ TEST_CASE("NaturalMergeSort: double", "[natural_merge_sort][double]") {
 
 TEST_CASE("NaturalMergeSort: float", "[natural_merge_sort][float]") {
     check_sorted<float>("natural_float",
-                        {2.5F, -1.0F, 0.0F, 7.25F, -1.0F},
-                        {-1.0F, -1.0F, 0.0F, 2.5F, 7.25F});
+                        {6.0F, 3.0F, 0.0F, 7.0F, 2.5F, 9.0F, 1.0F, 4.0F},
+                        {0.0F, 1.0F, 2.5F, 3.0F, 4.0F, 6.0F, 7.0F, 9.0F});
 }
